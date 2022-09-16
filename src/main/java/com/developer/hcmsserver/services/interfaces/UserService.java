@@ -14,4 +14,5 @@ import org.springframework.stereotype.Repository;
 public interface UserService extends UserDetailsService {
     UserDto createUser(UserDto userDto);
     UserDto getUser(String userId);
+    boolean verifyEmailToken(String token);
 }

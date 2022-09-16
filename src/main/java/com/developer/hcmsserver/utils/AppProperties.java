@@ -19,4 +19,8 @@ public class AppProperties {
     public String getTokenSecret() {
         return env.getProperty("TOKEN_SECRET");
     }
+
+    public String getProductionUrl() {
+        return env.getProperty("PROD_URL");
+    }
 }
