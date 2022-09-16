@@ -7,6 +7,7 @@ import com.developer.hcmsserver.exceptions.classes.UserServiceException;
 import com.developer.hcmsserver.repository.UserRepository;
 import com.developer.hcmsserver.services.interfaces.UserService;
 import com.developer.hcmsserver.utils.GeneralUtils;
+import com.developer.hcmsserver.utils.SecurityConstants;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +74,22 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    public boolean verifyEmailToken(String token) {
+        boolean isTokenVerified = false;
+        UserEntity userEntity = userRepository.findUserByEmailVerificationToken(token);
+        if (userEntity != null) {
+            boolean hasTokenExpired = GeneralUtils.hasTokenExpired(token);
+            if (!hasTokenExpired) {
+                userEntity.setEmailVerificationToken(null);
+                userEntity.setEmailVerificationStatus(Boolean.TRUE);
+                userRepository.save(userEntity);
+                isTokenVerified = true;
+            }
+        }
+        return isTokenVerified;
+    }
+
+    @Override
     public UserDto getUser(String email) {
         UserEntity userEntity = userRepository.findUserByEmail(email);
 
@@ -104,14 +121,18 @@ public class UserServiceImplementation implements UserService {
     }
 
     private void sendEmail(UserEntity userEntity) throws MessagingException, UnsupportedEncodingException {
-        String link = "http://localhost:8080/verification-service/email-verification.html?token="+userEntity.getEmailVerificationToken();
-        // SimpleMailMessage msg = new SimpleMailMessage();
+        // LOCALHOST -> for testing purpose only.
+        // String link = "http://localhost:8080/verify/email-verification/"+userEntity.getEmailVerificationToken();
+        String link = SecurityConstants.getProductionUrl()+"/verify/email-verification/"+userEntity.getEmailVerificationToken();
         MimeMessage msg = javaMailSender.createMimeMessage();
-        // msg.setTo(userEntity.getEmail());
         msg.setRecipient(MimeMessage.RecipientType.TO,new InternetAddress(userEntity.getEmail()));
         msg.setFrom(new InternetAddress("hcms.server@gmail.com","HCMS Server"));
         msg.setSubject("Complete your registration!");
-        msg.setText("Hello There,\nPlease verify your email to login.\n" + link);
+        String mailContent = "<p>Hello "+userEntity.getFirstName()+" "+userEntity.getLastName()+",</p>";
+        mailContent += "<p>Please click Verify Now to complete your registration!";
+        mailContent += "<h5><a href=\""+link+"\">Verify Now</a></h5>";
+        mailContent += "<p>Thank You,<br>The HCMS Team</p>";
+        msg.setText(mailContent);
         javaMailSender.send(msg);
     }
 }
