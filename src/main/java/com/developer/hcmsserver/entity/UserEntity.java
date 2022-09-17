@@ -16,7 +16,7 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-@Entity(name = "usersMain")
+@Entity(name = "users_main")
 public class UserEntity implements Serializable {
 
     @Id
