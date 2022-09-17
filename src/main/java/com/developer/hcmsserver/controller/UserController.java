@@ -4,6 +4,7 @@ import com.developer.hcmsserver.dto.UserDto;
 import com.developer.hcmsserver.exceptions.ServerException;
 import com.developer.hcmsserver.exceptions.classes.UserServiceException;
 import com.developer.hcmsserver.models.GeneralResponse;
+import com.developer.hcmsserver.models.requests.PasswordResetRequest;
 import com.developer.hcmsserver.models.requests.UserSignupRequest;
 import com.developer.hcmsserver.models.responses.UserDataResponse;
 import com.developer.hcmsserver.services.interfaces.UserService;
@@ -35,6 +36,13 @@ public class UserController {
         UserDto userDto = mapper.map(userSignupRequest,UserDto.class);
         UserDto createdUser = userService.createUser(userDto);
         UserDataResponse userDataResponse = mapper.map(createdUser, UserDataResponse.class);
-        return new GeneralResponse("User Created Successfully!",userDataResponse);
+        return new GeneralResponse(false,"SUCCESS","User Created Successfully!",userDataResponse);
+    }
+
+    @PostMapping("/password-reset-request")
+    public GeneralResponse requestPasswordReset(@RequestBody PasswordResetRequest passwordResetRequest) {
+        boolean operationResult = userService.requestPasswordReset(passwordResetRequest.getEmail());
+        if (!operationResult) throw new ServerException(UserServiceException.UNKNOWN_EXCEPTION,HttpStatus.INTERNAL_SERVER_ERROR);
+        return new GeneralResponse(false,"SUCCESS","Password reset mail sent successfully!",null);
     }
 }

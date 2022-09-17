@@ -1,9 +1,11 @@
 package com.developer.hcmsserver.services.implementations;
 
 import com.developer.hcmsserver.dto.UserDto;
+import com.developer.hcmsserver.entity.PasswordResetTokenEntity;
 import com.developer.hcmsserver.entity.UserEntity;
 import com.developer.hcmsserver.exceptions.ServerException;
 import com.developer.hcmsserver.exceptions.classes.UserServiceException;
+import com.developer.hcmsserver.repository.PasswordResetRequestRepository;
 import com.developer.hcmsserver.repository.UserRepository;
 import com.developer.hcmsserver.services.interfaces.UserService;
 import com.developer.hcmsserver.utils.GeneralUtils;
@@ -13,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,6 +43,9 @@ public class UserServiceImplementation implements UserService {
     UserRepository userRepository;
 
     @Autowired
+    PasswordResetRequestRepository passwordResetRequestRepository;
+
+    @Autowired
     GeneralUtils utils;
 
     @Autowired
@@ -63,10 +69,14 @@ public class UserServiceImplementation implements UserService {
         UserEntity savedUserEntity = userRepository.save(userEntity);
         // send email for verification...
         try {
-             sendEmail(savedUserEntity);
+            String link = SecurityConstants.getProductionUrl()+"/verify/email-verification/"+userEntity.getEmailVerificationToken();
+            String subject = "Complete your registration!";
+            String mailContent = "<p>Hello "+userEntity.getFirstName()+" "+userEntity.getLastName()+",</p>";
+            mailContent += "<p>Please click Verify Now to complete your registration!";
+            mailContent += "<h5><a href=\""+link+"\">Verify Now</a></h5>";
+            mailContent += "<p>Thank You,<br>The HCMS Team</p>";
+            sendEmail(userEntity.getEmail(),subject,mailContent);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(Arrays.toString(e.getStackTrace()));
             throw new ServerException(UserServiceException.MAIL_NOT_SENT, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         // and send the UserDto back to Controller
@@ -90,6 +100,33 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    public boolean requestPasswordReset(String email) {
+        boolean returnValue = false;
+        UserEntity userEntity = userRepository.findUserByEmail(email);
+        if (userEntity == null) throw new ServerException(UserServiceException.USER_NOT_FOUND,HttpStatus.INTERNAL_SERVER_ERROR);
+
+        String token = new GeneralUtils().generatePasswordResetToken(userEntity.getUserId());
+
+        PasswordResetTokenEntity passwordTokenEntity = new PasswordResetTokenEntity();
+        passwordTokenEntity.setToken(token);
+        passwordTokenEntity.setUserDetails(userEntity);
+        passwordResetRequestRepository.save(passwordTokenEntity);
+        // send email to user
+        try {
+            String link = SecurityConstants.getProductionUrl()+"/verify/password-reset/"+token;
+            String subject = "Please reset your password!";
+            String mailContent = "<p>Hello "+userEntity.getFirstName()+" "+userEntity.getLastName()+",</p>";
+            mailContent += "<p>Please click Reset Now to reset your login password!";
+            mailContent += "<h5><a href=\""+link+"\">Reset Now</a></h5>";
+            mailContent += "<p>Thank You,<br>The HCMS Team</p>";
+            sendEmail(userEntity.getEmail(),subject,mailContent);
+        } catch (Exception e) {
+            throw new ServerException(UserServiceException.MAIL_NOT_SENT, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return true;
+    }
+
+    @Override
     public UserDto getUser(String email) {
         UserEntity userEntity = userRepository.findUserByEmail(email);
 
@@ -100,6 +137,7 @@ public class UserServiceImplementation implements UserService {
         return returnValue;
     }
 
+    // By Default for Spring Security
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // Here Username --> email (both are same)
@@ -120,19 +158,15 @@ public class UserServiceImplementation implements UserService {
                 authorities);
     }
 
-    private void sendEmail(UserEntity userEntity) throws MessagingException, UnsupportedEncodingException {
+    private void sendEmail(String email,String subject,String mailContent) throws MessagingException, UnsupportedEncodingException {
         // LOCALHOST -> for testing purpose only.
         // String link = "http://localhost:8080/verify/email-verification/"+userEntity.getEmailVerificationToken();
-        String link = SecurityConstants.getProductionUrl()+"/verify/email-verification/"+userEntity.getEmailVerificationToken();
-        MimeMessage msg = javaMailSender.createMimeMessage();
-        msg.setRecipient(MimeMessage.RecipientType.TO,new InternetAddress(userEntity.getEmail()));
-        msg.setFrom(new InternetAddress("hcms.server@gmail.com","HCMS Server"));
-        msg.setSubject("Complete your registration!");
-        String mailContent = "<p>Hello "+userEntity.getFirstName()+" "+userEntity.getLastName()+",</p>";
-        mailContent += "<p>Please click Verify Now to complete your registration!";
-        mailContent += "<h5><a href=\""+link+"\">Verify Now</a></h5>";
-        mailContent += "<p>Thank You,<br>The HCMS Team</p>";
-        msg.setText(mailContent);
-        javaMailSender.send(msg);
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message);
+        mimeMessageHelper.setTo(email);
+        mimeMessageHelper.setFrom("hcms.server@gmail.com","HCMS Server");
+        mimeMessageHelper.setSubject(subject);
+        mimeMessageHelper.setText(mailContent,true);
+        javaMailSender.send(message);
     }
 }

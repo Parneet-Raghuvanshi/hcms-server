@@ -19,20 +19,4 @@ public class GeneralResponse {
     private String code;
     private String message;
     private Object data;
-
-    // Response for Successful Result
-    public GeneralResponse(String message,Object data) {
-        this.hasError = false;
-        this.code = "SUCCESS";
-        this.message = message;
-        this.data = data;
-    }
-
-    // Response for Exception
-    public GeneralResponse(String exception,String message) {
-        this.hasError = true;
-        this.code = exception;
-        this.message = message;
-        this.data = null;
-    }
 }

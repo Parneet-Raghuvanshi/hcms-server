@@ -53,6 +53,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST, SecurityConstants.SIGNUP_URL).permitAll()
                 .antMatchers(HttpMethod.GET, SecurityConstants.VERIFICATION_EMAIL_URL).permitAll()
+                .antMatchers(HttpMethod.POST,SecurityConstants.PASSWORD_RESET_URL).permitAll()
                 .anyRequest().authenticated()
                 .and().addFilter(getAuthenticationFilter())
                 .addFilter(new JwtFilter(authenticationManager()))
@@ -111,7 +112,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         Map<String, Object> details = new HashMap<>();
         details.put("token", tokenRes);
         details.put("userId", userDto.getUserId());
-        GeneralResponse generalResponse = new GeneralResponse("Authentication successful!",details);
+        GeneralResponse generalResponse = new GeneralResponse(false,"SUCCESS","Authentication successful!",details);
 
         // response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -128,29 +129,29 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
             case "DisabledException" -> {
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 GeneralResponse generalResponse = new GeneralResponse(
-                        UserServiceException.EMAIL_NOT_VERIFIED[0],
-                        UserServiceException.EMAIL_NOT_VERIFIED[1]);
+                        true,UserServiceException.EMAIL_NOT_VERIFIED[0],
+                        UserServiceException.EMAIL_NOT_VERIFIED[1],null);
                 new ObjectMapper().writeValue(response.getWriter(), generalResponse);
             }
             case "UsernameNotFoundException" -> {
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 GeneralResponse generalResponse = new GeneralResponse(
-                        UserServiceException.USER_NOT_FOUND[0],
-                        UserServiceException.USER_NOT_FOUND[1]);
+                        true,UserServiceException.USER_NOT_FOUND[0],
+                        UserServiceException.USER_NOT_FOUND[1],null);
                 new ObjectMapper().writeValue(response.getWriter(), generalResponse);
             }
             case "BadCredentialsException" -> {
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 GeneralResponse generalResponse = new GeneralResponse(
-                        UserServiceException.WRONG_PASSWORD[0],
-                        UserServiceException.WRONG_PASSWORD[1]);
+                        true,UserServiceException.WRONG_PASSWORD[0],
+                        UserServiceException.WRONG_PASSWORD[1],null);
                 new ObjectMapper().writeValue(response.getWriter(), generalResponse);
             }
             default -> {
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 GeneralResponse generalResponse = new GeneralResponse(
-                        UserServiceException.UNKNOWN_EXCEPTION[0],
-                        UserServiceException.UNKNOWN_EXCEPTION[1]);
+                        true,UserServiceException.UNKNOWN_EXCEPTION[0],
+                        UserServiceException.UNKNOWN_EXCEPTION[1],null);
                 new ObjectMapper().writeValue(response.getWriter(), generalResponse);
             }
         }
