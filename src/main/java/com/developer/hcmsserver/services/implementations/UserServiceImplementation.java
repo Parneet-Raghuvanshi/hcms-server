@@ -127,6 +127,25 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    public boolean resetPassword(String token, String password) {
+        boolean returnValue = false;
+        if (GeneralUtils.hasTokenExpired(token)) return false;
+
+        PasswordResetTokenEntity passwordResetTokenEntity = passwordResetRequestRepository.findByToken(token);
+
+        if (passwordResetTokenEntity == null) return false;
+        String encodedPassword = bCryptPasswordEncoder.encode(password);
+
+        UserEntity userEntity = passwordResetTokenEntity.getUserDetails();
+        userEntity.setEncryptedPassword(encodedPassword);
+        UserEntity savedUserEntity = userRepository.save(userEntity);
+
+        if (savedUserEntity.getEncryptedPassword().equalsIgnoreCase(encodedPassword)) returnValue = true;
+        passwordResetRequestRepository.delete(passwordResetTokenEntity);
+        return returnValue;
+    }
+
+    @Override
     public UserDto getUser(String email) {
         UserEntity userEntity = userRepository.findUserByEmail(email);
 
@@ -160,7 +179,7 @@ public class UserServiceImplementation implements UserService {
 
     private void sendEmail(String email,String subject,String mailContent) throws MessagingException, UnsupportedEncodingException {
         // LOCALHOST -> for testing purpose only.
-        // String link = "http://localhost:8080/verify/email-verification/"+userEntity.getEmailVerificationToken();
+        // String local = "http://localhost:8080";
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message);
         mimeMessageHelper.setTo(email);
