@@ -20,7 +20,7 @@
 <body>
 
 <div class="main-content mt-5">
-    <h2 class="text-center mb-4">EMAIL VERIFICATION</h2>
+    <h2 class="text-center mb-4" th:text="${name}"></h2>
     <div th:if="${successMessage}" th:text="${successMessage}" class="alert alert-success" role="alert"></div>
     <div th:if="${errorMessage}" th:text="${errorMessage}" class="alert alert-danger" role="alert"></div>
 </div>
