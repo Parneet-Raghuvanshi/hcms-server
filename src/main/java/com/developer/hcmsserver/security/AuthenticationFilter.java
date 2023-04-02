@@ -29,7 +29,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     public Authentication attemptAuthentication(HttpServletRequest req, HttpServletResponse res) throws AuthenticationException {
         try {
             UserLoginRequest cred = new ObjectMapper()
-                    .readValue(req.getInputStream(),UserLoginRequest.class);
+                    .readValue(req.getInputStream(), UserLoginRequest.class);
 
             UserService userService = (UserService) SpringApplicationContext.getBean("userServiceImplementation");
             UserDto userDto = userService.getUser(cred.getEmail());

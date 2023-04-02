@@ -4,17 +4,11 @@ import com.developer.hcmsserver.dto.UserDto;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Repository;
 
-/**
- * All userService function for Database Interaction
- * Contains :-
- * - /signup
- * - /login
- * */
-
 public interface UserService extends UserDetailsService {
-    UserDto createUser(UserDto userDto);
-    UserDto getUser(String userId);
-    boolean verifyEmailToken(String token);
+    void createUser(UserDto userDto);
+    UserDto getUser(String publicId);
     boolean requestPasswordReset(String email);
     boolean resetPassword(String token,String password);
+    void updateUserName(String id, String name);
+    boolean verifyEmailToken(String token);
 }

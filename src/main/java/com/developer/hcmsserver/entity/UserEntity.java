@@ -2,50 +2,35 @@ package com.developer.hcmsserver.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import javax.print.Doc;
 import java.io.Serializable;
-
-/**
- * UserEntity - The most Parent Entity ( User Main Class)
- * also used for authentication and authorization
- * */
 
 @Getter
 @Setter
-@Entity(name = "users_main")
+@ToString
+@Entity(name = "user")
 public class UserEntity implements Serializable {
-
+    //---(Server => Variables)---//
     @Id
     @GeneratedValue
     private Long id;
-
     @Column(nullable = false)
-    private String userId;
-
+    private String publicId;
+    //---(Main => Variables)---//
     @Column(nullable = false,length = 50)
-    private String firstName;
-
-    @Column(nullable = false,length = 50)
-    private String lastName;
-
+    private String name;
     @Column(nullable = false)
     private String role;
-
     @Column(nullable = false,length = 120)
     private String email;
-
+    //---(Encryption - Security  => Variables)---//
     @Column(nullable = false)
     private String encryptedPassword;
-
+    @Column
     private String emailVerificationToken;
-
     @Column(nullable = false)
     private Boolean emailVerificationStatus = false;
-
-    @Column(nullable = false)
-    private Boolean profileCompleteStatus = false;
 }

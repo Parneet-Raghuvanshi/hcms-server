@@ -3,10 +3,6 @@ package com.developer.hcmsserver.models.responses;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Simple POJO for User Data Model Response
- * */
-
 @Getter
 @Setter
 public class UserDataResponse {

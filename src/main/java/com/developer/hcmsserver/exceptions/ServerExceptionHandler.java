@@ -15,6 +15,15 @@ import java.util.Date;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
+    @ExceptionHandler(value = {Exception.class})
+    public ResponseEntity<Object> handleMainException(Exception exception, WebRequest request) {
+        GeneralResponse response = new GeneralResponse(
+                true,
+                "UNDEFINED",
+                exception.getMessage(),
+                null);
+        return buildResponseEntity(response,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @ExceptionHandler(value = {ServerException.class})
     public ResponseEntity<Object> handleUserServiceException(ServerException exception, WebRequest request) {
@@ -24,16 +33,6 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
                 exception.getMessage(),
                 null);
         return buildResponseEntity(response,exception.getStatus());
-    }
-
-    @ExceptionHandler(value = {Exception.class})
-    public ResponseEntity<Object> handleMainException(Exception exception, WebRequest request) {
-        GeneralResponse response = new GeneralResponse(
-                true,
-                "UNDEFINED",
-                exception.getMessage(),
-                null);
-        return buildResponseEntity(response,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ResponseEntity<Object> buildResponseEntity(GeneralResponse response,HttpStatus httpStatus) {

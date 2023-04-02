@@ -7,4 +7,8 @@ import lombok.Setter;
 @Setter
 public class PasswordResetRequest {
     private String email;
+
+    public boolean isEmpty() {
+        return email.isEmpty();
+    }
 }
