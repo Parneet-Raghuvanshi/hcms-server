@@ -1,10 +1,8 @@
 package com.developer.hcmsserver.utils;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
@@ -17,18 +15,19 @@ public class GeneralUtils {
     private static final Random RANDOM = new SecureRandom();
     private static final String ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-    public String generateUserId(int length) {
-        return generateRandomString(length);
-    }
+    public static boolean hasTokenExpired(String token) {
+        boolean returnValue;
+        try {
+            Claims claims = Jwts.parser().setSigningKey(SecurityConstants.getTokenSecret())
+                    .parseClaimsJws(token).getBody();
+            Date tokenExpirationDate = claims.getExpiration();
+            Date todayDate = new Date();
 
-    private String generateRandomString(int length) {
-        StringBuilder returnValue = new StringBuilder();
-
-        for (int i=0;i < length;i++) {
-            returnValue.append(ALPHABET.charAt(RANDOM.nextInt(ALPHABET.length())));
+            returnValue = tokenExpirationDate.before(todayDate);
+        } catch (Exception e) {
+            returnValue = true;
         }
-
-        return new String(returnValue);
+        return returnValue;
     }
 
     public String generateEmailVerificationToken(String userId) {
@@ -45,18 +44,15 @@ public class GeneralUtils {
                 .compact();
     }
 
-    public static boolean hasTokenExpired(String token) {
-        boolean returnValue = false;
-        try {
-            Claims claims = Jwts.parser().setSigningKey(SecurityConstants.getTokenSecret())
-                    .parseClaimsJws(token).getBody();
-            Date tokenExpirationDate = claims.getExpiration();
-            Date todayDate = new Date();
+    public String generateUniqueId(int length) {
+        return generateRandomString(length);
+    }
 
-            returnValue = tokenExpirationDate.before(todayDate);
-        } catch (ExpiredJwtException e) {
-            returnValue = true;
+    private String generateRandomString(int length) {
+        StringBuilder returnValue = new StringBuilder();
+        for (int i=0;i < length;i++) {
+            returnValue.append(ALPHABET.charAt(RANDOM.nextInt(ALPHABET.length())));
         }
-        return returnValue;
+        return new String(returnValue);
     }
 }

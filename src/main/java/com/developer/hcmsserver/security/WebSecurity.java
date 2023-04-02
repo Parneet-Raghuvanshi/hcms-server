@@ -51,6 +51,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         http.cors().and()
                 .csrf().disable()
                 .authorizeRequests()
+                .antMatchers(HttpMethod.POST,"/api/**").permitAll()
                 .antMatchers(HttpMethod.POST, SecurityConstants.SIGNUP_URL).permitAll()
                 .antMatchers(HttpMethod.GET, SecurityConstants.VERIFICATION_EMAIL_URL).permitAll()
                 .antMatchers(HttpMethod.POST,SecurityConstants.PASSWORD_RESET_URL).permitAll()
@@ -113,7 +114,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         // for sending proper response -- Custom Response
         Map<String, Object> details = new HashMap<>();
         details.put("token", tokenRes);
-        details.put("userId", userDto.getUserId());
+        details.put("userId", userDto.getPublicId());
         GeneralResponse generalResponse = new GeneralResponse(false,"SUCCESS","Authentication successful!",details);
 
         // response.setStatus(HttpStatus.OK.value());

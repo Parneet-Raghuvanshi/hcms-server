@@ -6,11 +6,6 @@ import lombok.Setter;
 
 import java.util.Date;
 
-/**
- * The General and Unique response for every request
- * Contains - status, hasError, message, data;
- * */
-
 @Getter
 @Setter
 @AllArgsConstructor
